@@ -182,7 +182,7 @@ void draw(uint8_t* pixels, uint8_t* pixels2,const char* map,int map_w,int map_h,
         else if (angle > 2 * M_PI) angle = angle - 2 * M_PI;
 
         double x = angle * pow(10, 12);
-        if (x == 5778754234313.9648)
+        if (x == 5061007499694.8242)
             x = 0;
 
         float dy=0, dx=0;
@@ -245,33 +245,28 @@ void draw(uint8_t* pixels, uint8_t* pixels2,const char* map,int map_w,int map_h,
         if (bTileFound)
         {
             while (true) {
-                pair<Point,double> par = horizontalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, nadjenP, { nadjenP.x + rect_w,nadjenP.y });
-                p = par.first;
-                distance = par.second;
-                if (p.x != -1) break;
-                /*if (nadjenP.x - rect_w >= 0)
-                    p = horizontalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle },  { nadjenP.x - rect_w,nadjenP.y }, nadjenP);
-                if (p.x != -1) break;
-                if (nadjenP.x + 2 * rect_w <= 32 * 16)
-                    p = horizontalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, { nadjenP.x + rect_w,nadjenP.y }, { nadjenP.x + 2*rect_w,nadjenP.y });
-                if (p.x != -1) break;*/
                 pair<Point, double> par2 = verticalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, nadjenP, { nadjenP.x ,nadjenP.y + rect_h });
-                p = par2.first;
-                distance = par2.second;
-                /*if (p.x != -1) break;
-                if (nadjenP.y - rect_h >= 0)
-                    p = verticalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle },  { nadjenP.x ,nadjenP.y - rect_h },nadjenP);
-                if (p.x != -1) break;
-                if(nadjenP.y + 2*rect_h<=32*16)
-                    p = verticalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle },  { nadjenP.x ,nadjenP.y + rect_h }, { nadjenP.x ,nadjenP.y + 2*rect_h });
-                break;*/
+                pair<Point,double> par = horizontalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, nadjenP, { nadjenP.x + rect_w,nadjenP.y });
+                if (par2.second < par.second&&par2.first.x!=-1&&par.first.x!=-1) {
+                    p = par2.first;
+                    distance = par2.second;
+                }
+                else {
+                    if (par.first.x != -1) {
+                        p = par.first;
+                        distance = par.second;
+                    }
+                    else {
+                        p = par2.first;
+                        distance = par2.second;
+                    }
+                }
                 break;
             }
             
         }
         if (p.x == -1) {
-            double zx = angle * pow(10, 12);
-            cout << zx << "\n";
+            
             continue;
         }
         int pix_x = p.x;
