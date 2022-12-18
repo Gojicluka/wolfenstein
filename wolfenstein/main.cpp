@@ -42,17 +42,17 @@ struct Line {
     Point p1, p2;
 };
 
-Point horizontalIntersection(Ray r, Point p1, Point p2) {
-    double x = r.direction*pow(10,12);
+pair<Point,double> horizontalIntersection(Ray r, Point p1, Point p2) {
+    double x = r.direction * pow(10, 12);
     if (x == 5778754234313.9648)
-       x = 0;
-    
+        x = 0;
+
     r.direction = fmod(r.direction, 2 * M_PI);
     double ogDirection = r.direction;
-    if (r.direction <= M_PI) 
+    if (r.direction <= M_PI)
         r.direction = abs(M_PI / 2 - r.direction);
-    else if (r.direction <= 2 * M_PI) 
-        r.direction = abs(3*M_PI / 2 - r.direction);
+    else if (r.direction <= 2 * M_PI)
+        r.direction = abs(3 * M_PI / 2 - r.direction);
 
     if (p1.y < r.start.y) {
         p1.y += 32; p2.y += 32;
@@ -64,16 +64,16 @@ Point horizontalIntersection(Ray r, Point p1, Point p2) {
     double xKor = -1;
     if (ogDirection <= M_PI / 2 || ogDirection >= (M_PI * 3 / 2))
         xKor = r.start.x + xDuzina;
-    else 
+    else
         xKor = r.start.x - xDuzina;
-
-    if (p1.x <= xKor && xKor <= p2.x) 
-        return { xKor,yKor };
+    double distance = sqrt(pow(xDuzina, 2) + pow(yDuzina, 2));
+    if (p1.x <= xKor && xKor <= p2.x)
+        return {{ xKor,yKor }, distance};
     else 
-        return { -1,-1 };
+        return { { -1,-1 } ,distance};
 }
 
-Point verticalIntersection(Ray r, Point p1, Point p2) {
+pair<Point,double> verticalIntersection(Ray r, Point p1, Point p2) {
     double x = r.direction * pow(10, 12);
     if (x == 5778754234313.9648)
         x = 0;
@@ -99,10 +99,11 @@ Point verticalIntersection(Ray r, Point p1, Point p2) {
     else 
         yKor = r.start.y + yDuzina;
 
+    double distance = sqrt(pow(xDuzina,2)+pow(yDuzina,2));
     if (p1.y <= yKor && yKor <= p2.y) 
-        return { xKor,yKor };
+        return { { xKor,yKor } ,distance};
     else 
-        return { -1,-1 };
+        return {{ -1,-1 },distance };
 }
 
 //Textura mora biti kvadrat
@@ -239,11 +240,14 @@ void draw(uint8_t* pixels, uint8_t* pixels2,const char* map,int map_w,int map_h,
             }
         }
         Point p = {-1,-1};
+        double distance;
         Point nadjenP = { ((int)vMapCheck.first) * rect_w,((int)vMapCheck.second) * rect_h };
         if (bTileFound)
         {
             while (true) {
-                p = horizontalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, nadjenP, { nadjenP.x + rect_w,nadjenP.y });
+                pair<Point,double> par = horizontalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, nadjenP, { nadjenP.x + rect_w,nadjenP.y });
+                p = par.first;
+                distance = par.second;
                 if (p.x != -1) break;
                 /*if (nadjenP.x - rect_w >= 0)
                     p = horizontalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle },  { nadjenP.x - rect_w,nadjenP.y }, nadjenP);
@@ -251,7 +255,9 @@ void draw(uint8_t* pixels, uint8_t* pixels2,const char* map,int map_w,int map_h,
                 if (nadjenP.x + 2 * rect_w <= 32 * 16)
                     p = horizontalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, { nadjenP.x + rect_w,nadjenP.y }, { nadjenP.x + 2*rect_w,nadjenP.y });
                 if (p.x != -1) break;*/
-                p = verticalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, nadjenP, { nadjenP.x ,nadjenP.y + rect_h });
+                pair<Point, double> par2 = verticalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, nadjenP, { nadjenP.x ,nadjenP.y + rect_h });
+                p = par2.first;
+                distance = par2.second;
                 /*if (p.x != -1) break;
                 if (nadjenP.y - rect_h >= 0)
                     p = verticalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle },  { nadjenP.x ,nadjenP.y - rect_h },nadjenP);
@@ -274,46 +280,46 @@ void draw(uint8_t* pixels, uint8_t* pixels2,const char* map,int map_w,int map_h,
         pixels[pix_x * 4 + pix_y * win_w * 4 + 1] = 255;
         pixels[pix_x * 4 + pix_y * win_w * 4 + 2] = 255;
         pixels[pix_x * 4 + pix_y * win_w * 4 + 3] = 0;*/
-        for (float t = 0; t < 16; t += .05) {   
-            /*float cx = (float)player.x + t * cos(angle);
-            float cy = (float)player.y + t * sin(angle);*/
-            float cx = (float)player.x + t * cos(angle);
-            float cy = (float)player.y + t * sin(angle); 
-            int pix_x = cx * rect_w;
-            int pix_y = cy * rect_h;
-            //drawPixel(pixels, win_w, pix_x, pix_y, { 255,255,255,0 });
-            /*pixels[pix_x * 4 + pix_y * win_w * 4] = 255;
-            pixels[pix_x * 4 + pix_y * win_w * 4 + 1] = 255;
-            pixels[pix_x * 4 + pix_y * win_w * 4 + 2] = 255;
-            pixels[pix_x * 4 + pix_y * win_w * 4 + 3] = 0;*/
-            if (map[int(cx) + int(cy) * map_w] != ' ') {
-                //cx = intersection.first, cy = intersection.second;
-                float column_height = (float)win_h / (t* cos(angle - player.view_direction));
-                //draw_rectangle(pixels2, win_w, win_h, win_w + i, win_h / 2 - column_height / 2, 1, column_height, { 0,255,255 ,0 });
-                //draw_rectangle(pixels2, win_w, win_h, win_w + i, win_h / 2 - column_height / 2, 1, column_height,  0,255,255 ,0 );
-                float hitx = cx - floor(cx + .5); 
-                float hity = cy - floor(cy + .5); 
-                int x_texcoord = hitx * wall.size;
-                if (std::abs(hity) > std::abs(hitx)) {
-                    x_texcoord = wall.size- hity * wall.size;
-                }
-                
-                if (x_texcoord < 0) x_texcoord += wall.size;
-                if (x_texcoord > 255) x_texcoord -= wall.size;
-                pix_x = win_w  + i;
-                for (size_t j = 0; j < column_height; j++) {
-                    size_t texture_x2 = 0 * wall.size + x_texcoord;
-                    size_t texture_y2 = (j * wall.size) / column_height;
-                    pix_y = j + win_h / 2 - column_height / 2;
-                    if (pix_y < 0 || pix_y >= (int)win_h) continue;
-                    pixels2[(pix_x + pix_y * win_w)*4] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4];
-                    pixels2[(pix_x + pix_y * win_w)*4+1] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4+1];
-                    pixels2[(pix_x + pix_y * win_w)*4+2] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4+2];
-                    pixels2[(pix_x + pix_y * win_w)*4+3] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4+3];
-                }
-                break;
-            }
+         
+        /*float cx = (float)player.x + t * cos(angle);
+        float cy = (float)player.y + t * sin(angle);*/
+        float cx = p.x/32;
+        float cy = p.y/32; 
+        /*int pix_x = cx * rect_w;
+        int pix_y = cy * rect_h;*/
+        //drawPixel(pixels, win_w, pix_x, pix_y, { 255,255,255,0 });
+        /*pixels[pix_x * 4 + pix_y * win_w * 4] = 255;
+        pixels[pix_x * 4 + pix_y * win_w * 4 + 1] = 255;
+        pixels[pix_x * 4 + pix_y * win_w * 4 + 2] = 255;
+        pixels[pix_x * 4 + pix_y * win_w * 4 + 3] = 0;*/
+       
+        //cx = intersection.first, cy = intersection.second;
+        float column_height = (float)win_h / ((distance/32)* cos(angle - player.view_direction));
+        //draw_rectangle(pixels2, win_w, win_h, win_w + i, win_h / 2 - column_height / 2, 1, column_height, { 0,255,255 ,0 });
+        //draw_rectangle(pixels2, win_w, win_h, win_w + i, win_h / 2 - column_height / 2, 1, column_height,  0,255,255 ,0 );
+        float hitx = cx - floor(cx + .5); 
+        float hity = cy - floor(cy + .5); 
+        int x_texcoord = hitx * wall.size;
+        if (std::abs(hity) > std::abs(hitx)) {
+            x_texcoord = wall.size- hity * wall.size;
         }
+                
+        if (x_texcoord < 0) x_texcoord += wall.size;
+        if (x_texcoord > 255) x_texcoord -= wall.size;
+        pix_x = win_w  + i;
+        for (size_t j = 0; j < column_height; j++) {
+            size_t texture_x2 = 0 * wall.size + x_texcoord;
+            size_t texture_y2 = (j * wall.size) / column_height;
+            pix_y = j + win_h / 2 - column_height / 2;
+            if (pix_y < 0 || pix_y >= (int)win_h) continue;
+            pixels2[(pix_x + pix_y * win_w)*4] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4];
+            pixels2[(pix_x + pix_y * win_w)*4+1] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4+1];
+            pixels2[(pix_x + pix_y * win_w)*4+2] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4+2];
+            pixels2[(pix_x + pix_y * win_w)*4+3] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4+3];
+        }
+        
+        
+        
     }
     //// update texture with new data
     int texture_pitch = 0;
@@ -381,7 +387,7 @@ int main(int argc, char** argv) {
                         "1              1"\
                         "1111111111111111";
     Player player(2.3, 2.5, 5, 5);
-    //Player player(2, 3, 5, 5);
+    //Player player(2, 2, 5, 5);
     Texture wall;
     if (!load_texture("milodrip.png", wall)) {
         std::cerr << "Failed to load wall textures" << std::endl;
@@ -426,8 +432,8 @@ int main(int argc, char** argv) {
         Uint64 end = SDL_GetPerformanceCounter();
 
         float elapsed = (end - start) / (float)SDL_GetPerformanceFrequency();
-        //cout << "Current FPS: " << to_string(1.0f / elapsed) << endl;
-        cout << "Current Direction: " << player.view_direction << "\n";
+        cout << "Current FPS: " << to_string(1.0f / elapsed) << "\n";
+        //cout << "Current Direction: " << player.view_direction << "\n";
     }
 
     SDL_DestroyTexture(sdltexture);
