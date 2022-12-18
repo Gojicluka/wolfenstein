@@ -29,8 +29,6 @@ public:
     Texture() {}
 };
 
-
-
 struct Point {
     double x, y;
 };
@@ -43,10 +41,6 @@ struct Line {
 };
 
 pair<Point,double> horizontalIntersection(Ray r, Point p1, Point p2) {
-    double x = r.direction * pow(10, 12);
-    if (x == 5778754234313.9648)
-        x = 0;
-
     r.direction = fmod(r.direction, 2 * M_PI);
     double ogDirection = r.direction;
     if (r.direction <= M_PI)
@@ -74,10 +68,6 @@ pair<Point,double> horizontalIntersection(Ray r, Point p1, Point p2) {
 }
 
 pair<Point,double> verticalIntersection(Ray r, Point p1, Point p2) {
-    double x = r.direction * pow(10, 12);
-    if (x == 5778754234313.9648)
-        x = 0;
-    
     r.direction = fmod(r.direction, 2 * M_PI);
     double ogDirection = r.direction;
     if (( r.direction>=0&& r.direction <= M_PI / 2)|| (r.direction >= M_PI && r.direction <= 3*M_PI / 2)) 
@@ -181,10 +171,6 @@ void draw(uint8_t* pixels, uint8_t* pixels2,const char* map,int map_w,int map_h,
         if (angle < 0) angle = 2*M_PI + angle;
         else if (angle > 2 * M_PI) angle = angle - 2 * M_PI;
 
-        double x = angle * pow(10, 12);
-        if (x == 5061007499694.8242)
-            x = 0;
-
         float dy=0, dx=0;
         pair<int, int> step = { sgn<float>(cos(angle)),sgn<float>(sin(angle)) };
         pair<double,double> dir = { cos(angle),sin(angle) };
@@ -244,54 +230,26 @@ void draw(uint8_t* pixels, uint8_t* pixels2,const char* map,int map_w,int map_h,
         Point nadjenP = { ((int)vMapCheck.first) * rect_w,((int)vMapCheck.second) * rect_h };
         if (bTileFound)
         {
-            while (true) {
-                pair<Point, double> par2 = verticalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, nadjenP, { nadjenP.x ,nadjenP.y + rect_h });
-                pair<Point,double> par = horizontalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, nadjenP, { nadjenP.x + rect_w,nadjenP.y });
-                if (par2.second < par.second&&par2.first.x!=-1&&par.first.x!=-1) {
-                    p = par2.first;
-                    distance = par2.second;
-                }
-                else {
-                    if (par.first.x != -1) {
-                        p = par.first;
-                        distance = par.second;
-                    }
-                    else {
-                        p = par2.first;
-                        distance = par2.second;
-                    }
-                }
-                break;
+            pair<Point, double> par = horizontalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, nadjenP, { nadjenP.x + rect_w,nadjenP.y });
+            pair<Point, double> par2 = verticalIntersection({ {(double)player.x * rect_w,(double)player.y * rect_h},angle }, nadjenP, { nadjenP.x ,nadjenP.y + rect_h });
+            if (par2.second < par.second&&par2.first.x!=-1&&par.first.x!=-1||par.first.x==-1) {
+                p = par2.first;
+                distance = par2.second;
             }
-            
+            else {
+                p = par.first;
+                distance = par.second;
+            }
         }
         if (p.x == -1) {
-            
             continue;
         }
+        //CRTANJE ZIDA
         int pix_x = p.x;
         int pix_y = p.y;
-       /* pixels[pix_x * 4 + pix_y * win_w * 4] = 255;
-        pixels[pix_x * 4 + pix_y * win_w * 4 + 1] = 255;
-        pixels[pix_x * 4 + pix_y * win_w * 4 + 2] = 255;
-        pixels[pix_x * 4 + pix_y * win_w * 4 + 3] = 0;*/
-         
-        /*float cx = (float)player.x + t * cos(angle);
-        float cy = (float)player.y + t * sin(angle);*/
         float cx = p.x/32;
         float cy = p.y/32; 
-        /*int pix_x = cx * rect_w;
-        int pix_y = cy * rect_h;*/
-        //drawPixel(pixels, win_w, pix_x, pix_y, { 255,255,255,0 });
-        /*pixels[pix_x * 4 + pix_y * win_w * 4] = 255;
-        pixels[pix_x * 4 + pix_y * win_w * 4 + 1] = 255;
-        pixels[pix_x * 4 + pix_y * win_w * 4 + 2] = 255;
-        pixels[pix_x * 4 + pix_y * win_w * 4 + 3] = 0;*/
-       
-        //cx = intersection.first, cy = intersection.second;
         float column_height = (float)win_h / ((distance/32)* cos(angle - player.view_direction));
-        //draw_rectangle(pixels2, win_w, win_h, win_w + i, win_h / 2 - column_height / 2, 1, column_height, { 0,255,255 ,0 });
-        //draw_rectangle(pixels2, win_w, win_h, win_w + i, win_h / 2 - column_height / 2, 1, column_height,  0,255,255 ,0 );
         float hitx = cx - floor(cx + .5); 
         float hity = cy - floor(cy + .5); 
         int x_texcoord = hitx * wall.size;
