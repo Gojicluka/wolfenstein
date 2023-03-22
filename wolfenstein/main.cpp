@@ -125,8 +125,17 @@ bool load_texture(const std::string filename, Texture& texture) {
     return true;
 }
 
+
+//inline void draw_pixel(uint8_t* img,vector<int> boje){
+//    img[cx * 4 + cy * img_w * 4] = boje[0];
+//    img[cx * 4 + cy * img_w * 4 + 1] = g;
+//    img[cx * 4 + cy * img_w * 4 + 2] = b;
+//    img[cx * 4 + cy * img_w * 4 + 3] = a;
+//}
+
 void draw_rectangle(uint8_t* img, size_t img_w, size_t img_h,size_t x, size_t y, size_t w, size_t h, char r,char g,char b,char a) {
     //assert(img.size() == img_w * img_h);
+    //draw_pixel(img, { 255,0,255,0 });
     for (size_t i = 0; i < w; i++) {
         for (size_t j = 0; j < h; j++) {
             size_t cx = x + i;
@@ -209,13 +218,6 @@ void draw(uint8_t* pixels, uint8_t* pixels2,const char* map,int map_w,int map_h,
                 fDistance = vRayLength1D.second; 
                 vRayLength1D.second += stepSize.second;
             }
-            int pix_x = vMapCheck.first*rect_w;
-            int pix_y = vMapCheck.second*rect_h;
-            pixels[pix_x * 4 + pix_y * win_w * 4] = 255;
-            pixels[pix_x * 4 + pix_y * win_w * 4 + 1] = 255;
-            pixels[pix_x * 4 + pix_y * win_w * 4 + 2] = 255;
-            pixels[pix_x * 4 + pix_y * win_w * 4 + 3] = 0;
-            int a = static_cast<int>(vMapCheck.second);
             if (vMapCheck.first >= 0 && vMapCheck.first < 16 && vMapCheck.second >= 0 && vMapCheck.second < 16)
             {
                 if (map[(int)(vMapCheck.second) * 16 + (int)(vMapCheck.first)] != ' ')
@@ -260,19 +262,21 @@ void draw(uint8_t* pixels, uint8_t* pixels2,const char* map,int map_w,int map_h,
         if (x_texcoord < 0) x_texcoord += wall.size;
         if (x_texcoord > 255) x_texcoord -= wall.size;
         pix_x = win_w  + i;
-        for (size_t j = 0; j < column_height; j++) {
-            size_t texture_x2 = 0 * wall.size + x_texcoord;
+        size_t j = 0;
+        if (win_h / 2 - column_height / 2 < 0) {
+            j = -(win_h / 2 - column_height / 2);
+        }
+        size_t texture_x2 = 0 * wall.size + x_texcoord;
+        for (j; j < column_height; j++) {
             size_t texture_y2 = (j * wall.size) / column_height;
             pix_y = j + win_h / 2 - column_height / 2;
-            if (pix_y < 0 || pix_y >= (int)win_h) continue;
+            //if (pix_y < 0 || pix_y >= (int)win_h) continue;
+            if (pix_y >= (int)win_h) break;
             pixels2[(pix_x + pix_y * win_w)*4] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4];
             pixels2[(pix_x + pix_y * win_w)*4+1] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4+1];
             pixels2[(pix_x + pix_y * win_w)*4+2] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4+2];
             pixels2[(pix_x + pix_y * win_w)*4+3] = wall.arr[(texture_x2 + texture_y2 * wall.size) * 4+3];
         }
-        
-        
-        
     }
     //// update texture with new data
     int texture_pitch = 0;
@@ -313,6 +317,7 @@ int main(int argc, char** argv) {
     SDL_RenderSetLogicalSize(renderer2, WIN_WIDTH, WIN_HEIGHT);
     SDL_Texture* sdltexture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STREAMING, WIN_WIDTH,WIN_HEIGHT);
     SDL_Texture* sdlTexture2 = SDL_CreateTexture(renderer2, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, WIN_WIDTH, WIN_HEIGHT);
+
     if (sdltexture == NULL) {
         SDL_Log("Unable to create sdltexture: %s", SDL_GetError());
         return 1;
@@ -325,24 +330,24 @@ int main(int argc, char** argv) {
     const size_t map_h = 16; // map height
     const char map[] =  "1111111111111111"\
                         "1              1"\
-                        "1      11111   1"\
+                        "1     111111   1"\
                         "1     1        1"\
-                        "1     3  1111111"\
-                        "1     3        1"\
-                        "1   11111      1"\
+                        "1   111  1111111"\
+                        "1   1          1"\
+                        "1   1          1"\
                         "1   1   11111  1"\
                         "1   1   1      1"\
                         "1   1   1  11111"\
                         "1       1      1"\
-                        "1       1      1"\
-                        "1       1      1"\
-                        "1 1111111      1"\
+                        "1       111    1"\
+                        "1         1    1"\
+                        "1 111111111    1"\
                         "1              1"\
                         "1111111111111111";
     Player player(2.3, 2.5, 5, 5);
     //Player player(2, 2, 5, 5);
     Texture wall;
-    if (!load_texture("milodrip.png", wall)) {
+    if (!load_texture("ziz.png", wall)) {
         std::cerr << "Failed to load wall textures" << std::endl;
         return -1;
     }
@@ -360,6 +365,10 @@ int main(int argc, char** argv) {
                 switch (e.key.keysym.scancode) {
                 case SDL_SCANCODE_P:
                     should_quit = true;
+                    break;
+                case SDL_SCANCODE_W:
+                    player.x += 0.1 * cos(player.view_direction);
+                    player.y += 0.1 * sin(player.view_direction);
                     break;
                 case SDL_SCANCODE_D:
                     player.view_direction += 0.1;
@@ -387,6 +396,17 @@ int main(int argc, char** argv) {
         float elapsed = (end - start) / (float)SDL_GetPerformanceFrequency();
         cout << "Current FPS: " << to_string(1.0f / elapsed) << "\n";
         //cout << "Current Direction: " << player.view_direction << "\n";
+
+        /*std::string score_text = "score: " + std::to_string(score);
+        SDL_Color textColor = { 255, 255, 255, 0 };
+        SDL_Surface* textSurface = TTF_RenderText_Solid(font, score_text.c_str(), textColor);
+        SDL_Texture* text = SDL_CreateTextureFromSurface(renderer, textSurface);
+        int text_width = textSurface->w;
+        int text_height = textSurface->h;
+        SDL_FreeSurface(textSurface);
+        SDL_Rect renderQuad = { 20, win_height - 30, text_width, text_height };
+        SDL_RenderCopy(renderer, text, NULL, &renderQuad);
+        SDL_DestroyTexture(text);*/
     }
 
     SDL_DestroyTexture(sdltexture);
