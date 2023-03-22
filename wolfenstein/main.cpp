@@ -347,7 +347,7 @@ int main(int argc, char** argv) {
     Player player(2.3, 2.5, 5, 5);
     //Player player(2, 2, 5, 5);
     Texture wall;
-    if (!load_texture("ziz.png", wall)) {
+    if (!load_texture("walltext1.png", wall)) {
         std::cerr << "Failed to load wall textures" << std::endl;
         return -1;
     }
